@@ -1,0 +1,10 @@
+# TSP-TW pipeline (npz and torch formats)
+numpy
+tqdm
+Pillow
+scikit-learn
+torch
+ortools==9.10.4067
+
+# Optional (other scripts / RL evaluation)
+rl4co==0.4.0
