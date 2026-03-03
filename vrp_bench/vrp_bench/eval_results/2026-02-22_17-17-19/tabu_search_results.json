@@ -1,0 +1,71 @@
+{
+  "solver": "Tabu Search",
+  "overall": {
+    "total_cost": 12110.25147942771,
+    "waiting_time": 11506.457200056613,
+    "cvr": 0.8333333333333334,
+    "feasibility": 0.7999999999999999,
+    "runtime": 45.40491377512615,
+    "robustness": 0.0
+  },
+  "tsp_tw": {
+    "total_cost": 12110.25147942771,
+    "waiting_time": 11506.457200056613,
+    "cvr": 0.8333333333333334,
+    "feasibility": 0.7999999999999999,
+    "runtime": 45.40491377512615,
+    "robustness": 0.0
+  },
+  "by_size": {
+    "small": {
+      "feasibility": 0.7999999999999999,
+      "cost": 12110.25147942771,
+      "cvr": 0.8333333333333334,
+      "runtime": 45.40491377512615
+    }
+  },
+  "detailed": [
+    {
+      "problem": "tsp_tw_10",
+      "size": 10,
+      "type": "",
+      "metrics": {
+        "total_cost": 4485.0260923675205,
+        "waiting_time": 3959.592324763522,
+        "cvr": 1.0,
+        "feasibility": 0.9,
+        "runtime": 9.79191358089447,
+        "robustness": 0.0
+      },
+      "problem_type": "tsp_tw"
+    },
+    {
+      "problem": "tsp_tw_20",
+      "size": 20,
+      "type": "",
+      "metrics": {
+        "total_cost": 8087.334983702705,
+        "waiting_time": 7838.3959269944535,
+        "cvr": 0.5,
+        "feasibility": 0.9,
+        "runtime": 24.13029944896698,
+        "robustness": 0.0
+      },
+      "problem_type": "tsp_tw"
+    },
+    {
+      "problem": "tsp_tw_50",
+      "size": 50,
+      "type": "",
+      "metrics": {
+        "total_cost": 23758.393362212908,
+        "waiting_time": 22721.383348411866,
+        "cvr": 1.0,
+        "feasibility": 0.6,
+        "runtime": 102.29252829551697,
+        "robustness": 0.0
+      },
+      "problem_type": "tsp_tw"
+    }
+  ]
+}
