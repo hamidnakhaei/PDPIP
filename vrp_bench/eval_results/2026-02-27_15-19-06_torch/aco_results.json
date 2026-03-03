@@ -1,0 +1,43 @@
+{
+  "solver": "ACO",
+  "overall": {
+    "total_cost": 4263.58480301592,
+    "waiting_time": 4298.697167876115,
+    "cvr": 1.0,
+    "feasibility": 0.9,
+    "runtime": 5.350867199897766,
+    "robustness": 0.0
+  },
+  "tsp_tw": {
+    "total_cost": 4263.58480301592,
+    "waiting_time": 4298.697167876115,
+    "cvr": 1.0,
+    "feasibility": 0.9,
+    "runtime": 5.350867199897766,
+    "robustness": 0.0
+  },
+  "by_size": {
+    "small": {
+      "feasibility": 0.9,
+      "cost": 4263.58480301592,
+      "cvr": 1.0,
+      "runtime": 5.350867199897766
+    }
+  },
+  "detailed": [
+    {
+      "problem": "tsp_tw_10",
+      "size": 10,
+      "type": "",
+      "metrics": {
+        "total_cost": 4263.58480301592,
+        "waiting_time": 4298.697167876115,
+        "cvr": 1.0,
+        "feasibility": 0.9,
+        "runtime": 5.350867199897766,
+        "robustness": 0.0
+      },
+      "problem_type": "tsp_tw"
+    }
+  ]
+}

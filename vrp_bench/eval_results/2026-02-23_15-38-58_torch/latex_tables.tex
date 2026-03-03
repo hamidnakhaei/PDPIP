@@ -1,0 +1,253 @@
+
+% =========================================================
+% TABLES FROM DOCX ATTACHMENT
+% =========================================================
+
+% Table 1: Performance comparison of baseline methods
+\begin{table}[ht]
+\centering
+\caption{Performance comparison of baseline methods (mean over all test
+instances and 1 stochastic realization). Lower is better for Cost, CVR,
+Runtime, and Robustness; higher is better for Feasibility Rate.}
+\label{tab:main_results}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Method} & \textbf{Total Cost} & \textbf{CVR (\%)} &
+\textbf{Feasibility} & \textbf{Runtime (s)} & \textbf{Robustness} \\
+\midrule
+NN+2opt & 4813.3 & 1.0 & 0.990 & 0.000 & 0.0 \\
+Tabu Search & 4484.5 & 1.0 & 0.900 & 9.845 & 0.0 \\
+ACO & 4222.1 & 1.0 & 0.900 & 5.626 & 0.0 \\
+OR-Tools & 2227.9 & 48.0 & 0.000 & 300.007 & 0.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table 2: Feasibility rate by instance scale
+\begin{table}[ht]
+\centering
+\caption{Feasibility rate by instance scale.}
+\label{tab:feasibility_by_scale}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{Small} & \textbf{Medium} & \textbf{Large} \\
+\midrule
+NN+2opt & 0.990 & 0.000 & 0.000 \\
+Tabu Search & 0.900 & 0.000 & 0.000 \\
+ACO & 0.900 & 0.000 & 0.000 \\
+OR-Tools & 0.000 & 0.000 & 0.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table 3: Cost robustness (variance) by method
+\begin{table}[ht]
+\centering
+\caption{Cost robustness (variance) by method.}
+\label{tab:robustness_variance}
+\begin{tabular}{lc}
+\toprule
+\textbf{Method} & \textbf{Cost Variance} \\
+\midrule
+NN+2opt & 0.0 \\
+Tabu Search & 0.0 \\
+ACO & 0.0 \\
+OR-Tools & 0.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table 4: Average runtime by method
+\begin{table}[ht]
+\centering
+\caption{Average runtime (in seconds) by method.}
+\label{tab:runtime_summary}
+\begin{tabular}{lc}
+\toprule
+\textbf{Method} & \textbf{Runtime (s)} \\
+\midrule
+NN+2opt & 0.000 \\
+Tabu Search & 9.845 \\
+ACO & 5.626 \\
+OR-Tools & 300.007 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =========================================================
+% DETAILED TABLES BY PROBLEM TYPE AND SIZE
+% =========================================================
+
+% Table 5: Detailed Performance by Instance Size
+\begin{table}[ht]
+\centering
+\caption{Detailed Performance Analysis by Instance Size}
+\label{tab:detailed_size_performance}
+\begin{tabular}{lcccccccccccc}
+\toprule
+& \multicolumn{4}{c}{\textbf{Small (≤50)}} & \multicolumn{4}{c}{\textbf{Medium (100-200)}} & \multicolumn{4}{c}{\textbf{Large (≥500)}} \\
+\cmidrule(r){2-5} \cmidrule(r){6-9} \cmidrule(l){10-13}
+\textbf{Method} & \textbf{Cost} & \textbf{CVR} & \textbf{Feas} & \textbf{RT} & \textbf{Cost} & \textbf{CVR} & \textbf{Feas} & \textbf{RT} & \textbf{Cost} & \textbf{CVR} & \textbf{Feas} & \textbf{RT} \\
+\midrule
+NN+2opt & 4813.3 & 1.0 & 0.990 & 0.4 & 0.0 & 0.0 & 0.000 & 0.0 & 0.0 & 0.0 & 0.000 & 0.0 \\
+Tabu Search & 4484.5 & 1.0 & 0.900 & 9845.0 & 0.0 & 0.0 & 0.000 & 0.0 & 0.0 & 0.0 & 0.000 & 0.0 \\
+ACO & 4222.1 & 1.0 & 0.900 & 5626.4 & 0.0 & 0.0 & 0.000 & 0.0 & 0.0 & 0.0 & 0.000 & 0.0 \\
+OR-Tools & 2227.9 & 48.0 & 0.000 & 300006.6 & 0.0 & 0.0 & 0.000 & 0.0 & 0.0 & 0.0 & 0.000 & 0.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =========================================================
+% INDIVIDUAL SOLVER ANALYSIS TABLES
+% =========================================================
+
+% Table: NN+2opt Detailed Performance
+\begin{table}[ht]
+\centering
+\caption{NN+2opt - Detailed Performance Breakdown}
+\label{tab:nnplus2opt_breakdown}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Configuration} & \textbf{Size} & \textbf{Cost} & \textbf{CVR} & \textbf{Feas} & \textbf{Runtime} & \textbf{TW Violations} \\
+\midrule
+ & 10 & 4813.3 & 1.0 & 0.990 & 0.4 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table: Tabu Search Detailed Performance
+\begin{table}[ht]
+\centering
+\caption{Tabu Search - Detailed Performance Breakdown}
+\label{tab:tabu_search_breakdown}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Configuration} & \textbf{Size} & \textbf{Cost} & \textbf{CVR} & \textbf{Feas} & \textbf{Runtime} & \textbf{TW Violations} \\
+\midrule
+ & 10 & 4484.5 & 1.0 & 0.900 & 9845.0 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table: ACO Detailed Performance
+\begin{table}[ht]
+\centering
+\caption{ACO - Detailed Performance Breakdown}
+\label{tab:aco_breakdown}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Configuration} & \textbf{Size} & \textbf{Cost} & \textbf{CVR} & \textbf{Feas} & \textbf{Runtime} & \textbf{TW Violations} \\
+\midrule
+ & 10 & 4222.1 & 1.0 & 0.900 & 5626.4 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table: OR-Tools Detailed Performance
+\begin{table}[ht]
+\centering
+\caption{OR-Tools - Detailed Performance Breakdown}
+\label{tab:or-tools_breakdown}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Configuration} & \textbf{Size} & \textbf{Cost} & \textbf{CVR} & \textbf{Feas} & \textbf{Runtime} & \textbf{TW Violations} \\
+\midrule
+ & 10 & 2227.9 & 48.0 & 0.000 & 300006.6 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =========================================================
+% COMPARATIVE ANALYSIS TABLES
+% =========================================================
+
+% Table: Pairwise Solver Comparison Matrix
+\begin{table}[ht]
+\centering
+\caption{Pairwise Solver Performance Comparison (\% Cost Improvement)}
+\label{tab:pairwise_comparison}
+\begin{tabular}{lcccc}
+\toprule
+ & \textbf{NN+2opt} & \textbf{Tabu Search} & \textbf{ACO} & \textbf{OR-Tools} \\
+\midrule
+\textbf{NN+2opt} & -- & +6.8 & +12.3 & +53.7 \\
+\textbf{Tabu Search} & -7.3 & -- & +5.9 & +50.3 \\
+\textbf{ACO} & -14.0 & -6.2 & -- & +47.2 \\
+\textbf{OR-Tools} & -116.0 & -101.3 & -89.5 & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table: Constraint Violation Breakdown (TSP-TW)
+\begin{table}[ht]
+\centering
+\caption{Constraint Violation Analysis by Solver (TSP-TW)}
+\label{tab:constraint_violations}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Method} & \textbf{Total CVR (\%)} & \textbf{Feasibility} & \textbf{TW Violations} \\
+\midrule
+NN+2opt & 1.0 & 0.990 & 0.00 \\
+Tabu Search & 1.0 & 0.900 & 0.00 \\
+ACO & 1.0 & 0.900 & 0.00 \\
+OR-Tools & 48.0 & 0.000 & 0.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% =========================================================
+% SCALABILITY ANALYSIS TABLES
+% =========================================================
+
+% Table: Runtime Scalability Analysis
+\begin{table}[ht]
+\centering
+\caption{Runtime Scalability Analysis (Growth Factors)}
+\label{tab:runtime_scalability}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method} & \textbf{Small} & \textbf{Small→Med} & \textbf{Medium} & \textbf{Med→Large} & \textbf{Large} & \textbf{Overall} \\
+\textbf{} & \textbf{RT (ms)} & \textbf{Factor} & \textbf{RT (ms)} & \textbf{Factor} & \textbf{RT (ms)} & \textbf{Factor} \\
+\midrule
+NN+2opt & 0.4 & 0.00x & 0.0 & 0.00x & 0.0 & 0.00x \\
+Tabu Search & 9845.0 & 0.00x & 0.0 & 0.00x & 0.0 & 0.00x \\
+ACO & 5626.4 & 0.00x & 0.0 & 0.00x & 0.0 & 0.00x \\
+OR-Tools & 300006.6 & 0.00x & 0.0 & 0.00x & 0.0 & 0.00x \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table: Cost Efficiency Analysis
+\begin{table}[ht]
+\centering
+\caption{Cost Efficiency by Instance Size (Cost per Millisecond)}
+\label{tab:cost_efficiency}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & \textbf{Small} & \textbf{Medium} & \textbf{Large} & \textbf{Efficiency Trend} \\
+\midrule
+NN+2opt & 13178.6 & 0.0 & 0.0 & Mixed \\
+Tabu Search & 0.5 & 0.0 & 0.0 & Mixed \\
+ACO & 0.8 & 0.0 & 0.0 & Mixed \\
+OR-Tools & 0.0 & 0.0 & 0.0 & Mixed \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% Table: Overall Scalability Summary
+\begin{table}[ht]
+\centering
+\caption{Overall Scalability Summary by Solver}
+\label{tab:scalability_summary}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method} & \textbf{Runtime} & \textbf{Cost} & \textbf{Feasibility} & \textbf{Robustness} & \textbf{Overall} & \textbf{Rank} \\
+\textbf{} & \textbf{Scale} & \textbf{Scale} & \textbf{Scale} & \textbf{Scale} & \textbf{Score} & \textbf{} \\
+\midrule
+OR-Tools & 0.00 & 0.00 & 1.00 & 1.00 & 0.30 & 1 \\
+Tabu Search & 0.00 & 0.00 & 10.00 & 1.00 & 2.10 & 2 \\
+ACO & 0.00 & 0.00 & 10.00 & 1.00 & 2.10 & 3 \\
+NN+2opt & 0.00 & 0.00 & 100.00 & 1.00 & 20.10 & 4 \\
+\bottomrule
+\end{tabular}
+\end{table}
