@@ -38,6 +38,11 @@ def args2dict(args):
                       "timeout_reward": args.timeout_reward, "timeout_node_reward": args.timeout_node_reward,
                       "fsb_dist_only": args.fsb_dist_only, "fsb_reward_only": args.fsb_reward_only,
                       "penalty_increase": args.penalty_increase, "penalty_factor": args.penalty_factor,
+                      "penalty_mode": args.penalty_mode,
+                      "dual_lr": args.dual_lr,
+                      "dual_lr": args.dual_lr, "lambda_timeout_init": args.lambda_timeout_init,
+                      "lambda_nodes_init": args.lambda_nodes_init, "eps_timeout": args.eps_timeout,
+                      "eps_nodes": args.eps_nodes, "lambda_max": args.lambda_max,
                       # resume
                       "checkpoint": args.checkpoint, "pip_checkpoint": args.pip_checkpoint, "load_optimizer": args.load_optimizer,
                       # loss
@@ -56,12 +61,12 @@ def args2dict(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Proactive Infeasibility Prevention (PIP) Framework for Routing Problems with Complex Constraints.")
+    parser = argparse.ArgumentParser(description="Primal-dual approach for stochastic TSP with time windows")
     # env_params
     parser.add_argument('--problem', type=str, default="TSPTW", choices=["TSPTW", "TSPDL"])
     parser.add_argument('--hardness', type=str, default="hard", choices=["hard", "medium", "easy"], help="Different levels of constraint hardness")
     parser.add_argument('--problem_size', type=int, default=50)
-    parser.add_argument('--pomo_size', type=int, default=50, help="the number of start node, should <= problem size")
+    parser.add_argument('--pomo_size', type=int, default=10, help="the number of start node, should <= problem size")
     parser.add_argument('--pomo_start', type=bool, default=False)
     parser.add_argument('--val_dataset', type=str, nargs='+', default=None, help="use the default one if set to None")
 
@@ -85,7 +90,7 @@ if __name__ == "__main__":
     parser.add_argument('--use_real_PI_mask', type=bool, default=True, help="whether to use PI masking")
     parser.add_argument('--pip_step', type=int, default=1)
     parser.add_argument('--k_sparse', type=int, default=500)
-    parser.add_argument("--use_predicted_PI_mask", type=bool, default=True, help="whether to use PIP-D masking")
+    parser.add_argument("--use_predicted_PI_mask", type=bool, default=False, help="whether to use PIP-D masking")
     parser.add_argument('--pip_decoder', action='store_true')
     parser.add_argument('--W_q_sl', type=bool, default=True)
     parser.add_argument('--W_out_sl', type=bool, default=True)
@@ -123,6 +128,15 @@ if __name__ == "__main__":
     parser.add_argument('--fsb_reward_only', type=bool, default=True) # activate only if no penalty
     parser.add_argument('--penalty_increase', type=bool, default=False)
     parser.add_argument('--penalty_factor', type=float, default=1.)
+    parser.add_argument('--penalty_mode', type=str, default="fixed", choices=["fixed", "primal_dual"],
+                    help="fixed: use penalty_factor; primal_dual: update two dual variables (lambdas) by subgradient")
+    # primal-dual options (two lambdas)
+    parser.add_argument('--dual_lr', type=float, default=1e-2, help="dual step size (eta) for lambda updates")
+    parser.add_argument('--lambda_timeout_init', type=float, default=1.0)
+    parser.add_argument('--lambda_nodes_init', type=float, default=1.0)
+    parser.add_argument('--eps_timeout', type=float, default=0.0, help="constraint threshold for total timeout (usually 0)")
+    parser.add_argument('--eps_nodes', type=float, default=0.0, help="constraint threshold for late nodes count (usually 0)")
+    parser.add_argument('--lambda_max', type=float, default=1e6, help="optional cap on lambdas to avoid blow-up")
     # resume params
     parser.add_argument('--resume_path', type=str, default=None, help='path to the old run')
     parser.add_argument('--checkpoint', type=str, default=None)

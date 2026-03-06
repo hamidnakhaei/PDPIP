@@ -93,8 +93,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.test_set_path is None:
         args.test_set_path = f"../data/{args.problem}/{args.problem.lower()}{args.problem_size}_{args.hardness}.pkl"
-    if args.test_set_opt_sol_path is None:
-        args.test_set_opt_sol_path = f"../data/{args.problem}/lkh_{args.problem.lower()}{args.problem_size}_{args.hardness}.pkl"
+    # If opt-solution path is not provided, do NOT compute gap
+    if args.test_set_opt_sol_path is None or args.test_set_opt_sol_path == "":
+        args.test_set_opt_sol_path = None
     pp.pprint(vars(args))
     env_params, model_params, tester_params = args2dict(args)
     seed_everything(args.seed)

@@ -17,7 +17,16 @@ class SINGLEModel(nn.Module):
 
         self.encoded_nodes = None
 
-        self.device = torch.device('cuda', torch.cuda.current_device()) if 'device' not in model_params.keys() else model_params['device']
+        if 'device' in model_params.keys():
+            self.device = model_params['device']
+        else:
+            # Safe default: CUDA if available, else MPS (Apple Silicon), else CPU
+            if torch.cuda.is_available():
+                self.device = torch.device('cuda')
+            #elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            #    self.device = torch.device('mps')
+            else:
+                self.device = torch.device('cpu')
         # shape: (batch, problem+1, EMBEDDING_DIM)
 
     def pre_forward(self, reset_state):

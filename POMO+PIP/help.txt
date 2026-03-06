@@ -1,0 +1,327 @@
+Yes. The cleanest primal–dual formulation that matches this repo is a **constrained expected-cost problem** where the policy parameters are the primal variables and the penalty weight(s) are dual variables.
+
+In the repo, the environment returns at the end of an episode:
+
+* `dist_reward = - travel_distance`
+* `total_timeout_reward = - total_timeout`
+* `timeout_nodes_reward = - (# of late([GitHub][1]) as
+
+[
+\text{reward}
+=============
+
+\text{dist_reward}
++
+\lambda\big(\text{total_timeout_reward}+\text{timeout_nodes_reward}\big),
+]
+
+where `penalty_factor` is currently a fixed scalar. That is exactly a Lagrangian-style penalized objective already; it is just using a fixed dual variable instead of updating it. ([GitHub][1])
+
+A natural **primal problem** is:
+
+[
+\min_{\theta};
+\mathbb{E}*{\tau \sim \pi*\theta}[D(\tau)]
+]
+
+subject to
+
+[
+\mathbb{E}*{\tau \sim \pi*\theta}[V_1(\tau)] \le \varepsilon_1,
+\qquad
+\mathbb{E}*{\tau \sim \pi*\theta}[V_2(\tau)] \le \varepsilon_2,
+]
+
+where:
+
+* (D(\tau)) = travel distance,
+* (V_1(\tau)) = total timeout,
+* (V_2(\tau)) = number of late nodes.
+
+If you want strict time-window feasibility, set (\varepsilon_1=\varepsilon_2=0). This is fully compatible with how the repo computes terminal rewards and violations. ([GitHub][1])
+
+Then the corresponding **Lagrangian** is
+
+[
+\mathcal{L}(\theta,\lambda_1,\lambda_2)
+=======================================
+
+\mathbb{E}*{\tau \sim \pi*\theta}
+\big[
+D(\tau)+\lambda_1(V_1(\tau)-\varepsilon_1)+\lambda_2(V_2(\tau)-\varepsilon_2)
+\big],
+\qquad
+\lambda_1,\lambda_2\ge 0.
+]
+
+Equivalently, since the repo is written as a **reward maximization** method, define
+
+[
+J(\theta,\lambda_1,\lambda_2)
+=============================
+
+\mathbb{E}*{\tau \sim \pi*\theta}
+\big[
+-D(\tau)-\lambda_1(V_1(\tau)-\varepsilon_1)-\lambda_2(V_2(\tau)-\varepsilon_2)
+\big].
+]
+
+Then the saddle-point problem is
+
+[
+\max_{\theta}\min_{\lambda_1,\lambda_2\ge 0} J(\theta,\lambda_1,\lambda_2).
+]
+
+This is the reward-form version of the same primal–dual problem. ([GitHub][2])
+
+### The version most compatible with the current repo
+
+Because the current code uses **one scalar** `penalty_factor` multiplying the sum of the two penalties, the closest drop-in formulation is the **single-dual-variable** problem:
+
+[
+\min_\theta ; \mathbb{E}[D(\tau)]
+\quad\text{s.t.}\quad
+\mathbb{E}[V(\tau)] \le \varepsilon,
+]
+
+with
+
+[
+V(\tau)=V_1(\tau)+V_2(\tau),
+]
+
+and Lagrangian
+
+[
+\mathcal{L}(\theta,\lambda)
+===========================
+
+\mathbb{E}[D(\tau)+\lambda(V(\tau)-\varepsilon)],
+\qquad \lambda\ge 0.
+]
+
+In reward form:
+
+[
+J(\theta,\lambda)
+=================
+
+\mathbb{E}\big[-D(\tau)-\lambda(V(\tau)-\varepsilon)\big].
+]
+
+This matches the repo almost exactly, since its current combined reward is already
+
+[
+-D(\tau)-\lambda\big(V_1(\tau)+V_2(\tau)\big).
+]
+
+So conceptually, you only need to replace fixed `penalty_factor` by an updated dual variable (\lambda_k). ([GitHub][2])
+
+### Primal and dual updates
+
+For the **policy / primal update**, keep the existing REINFORCE-style update exactly as they do now:
+
+[
+\theta_{k+1}
+============
+
+\theta_k
++
+\alpha_k ,\widehat{\nabla_\theta J(\theta_k,\lambda_k)}.
+]
+
+The trainer already computes an advantage from the batch reward and uses
+
+[
+\text{loss} = -,\text{advantage}\times \log p_\theta(\tau),
+]
+
+so this part does not need to change structurally. ([GitHub][2])
+
+For the **dual update**, use projected subgradient:
+
+Scalar version:
+[
+\lambda_{k+1}
+=============
+
+\Big[
+\lambda_k+\eta_k\big(\widehat{V}*k-\varepsilon\big)
+\Big]*+,
+]
+
+where ([x]_+=\max(x,0)), and (\widehat{V}_k) is the batch-average observed violation.
+
+Vector version:
+[
+\lambda_{1,k+1}
+===============
+
+\big[\lambda_{1,k}+\eta_k(\widehat{V}*{1,k}-\varepsilon_1)\big]*+,
+]
+[
+\lambda_{2,k+1}
+===============
+
+\big[\lambda_{2,k}+\eta_k(\widehat{V}*{2,k}-\varepsilon_2)\big]*+.
+]
+
+This is the right sign. If the batch is more infeasible, (\lambda) increases, so infeasible tours get penalized more in the next policy update. That is the standard primal–dual saddle behavior. ([GitHub][2])
+
+### Mapping directly to repo quantities
+
+Using the repo’s outputs:
+
+[
+\widehat{V}*{1,k} = -,\text{mean}(\texttt{total_timeout_reward}),
+\qquad
+\widehat{V}*{2,k} = -,\text{mean}(\texttt{timeout_nodes_reward}),
+]
+
+and for the scalar version,
+
+[
+\widehat{V}_k
+=============
+
+-,\text{mean}\big(
+\texttt{total_timeout_reward}
++
+\texttt{timeout_nodes_reward}
+\big).
+]
+
+Then the reward used in the policy-gradient step becomes
+
+[
+\texttt{reward}
+===============
+
+\texttt{dist_reward}
++
+\lambda_k\big(
+\texttt{total_timeout_reward}
++
+\texttt{timeout_nodes_reward}
+\big),
+]
+
+or in the vector version,
+
+[
+\texttt{reward}
+===============
+
+\texttt{dist_reward}
++
+\lambda_{1,k},\texttt{total_timeout_reward}
++
+\lambda_{2,k},\texttt{timeout_nodes_reward}.
+]
+
+So the whole repo remains structurally the same; only the penalty becomes adaptive. ([GitHub][2])
+
+### What I would recommend for your case
+
+I would recommend this hierarchy:
+
+1. **Easiest / minimal code change:** one scalar dual variable
+   [
+   \lambda_{k+1}=[\lambda_k+\eta_k(\widehat V_k-\varepsilon)]_+.
+   ]
+
+2. **Better mathematically:** two dual variables
+   [
+   (\lambda_1,\lambda_2)
+   ]
+   because total timeout and number of late nodes are different constraint types and generally live on different scales. The fact that the repo computes them separately already supports this cleaner formulation. ([GitHub][1])
+
+3. **Most faithful to feasibility:** if you really care about zero late nodes, set (\varepsilon_2=0) and possibly keep (\varepsilon_1=0) too.
+
+One subtle point: an expectation constraint enforces feasibility **on average over the training distribution**, not necessarily for every sampled instance. If you eventually want near-hard feasibility per instance, you may need stronger constraints or a larger dual step when violations persist.
+
+A concise statement of the full problem you could write in a paper is:
+
+[
+\max_{\theta}\min_{\lambda\ge 0}
+;
+\mathbb{E}*{\tau\sim\pi*\theta}
+\Big[
+-D(\tau)-\lambda\big(V(\tau)-\varepsilon\big)
+\Big],
+]
+
+with
+
+[
+V(\tau)=\sum_{t} \max{0,\text{arrival}_t-\text{tw_end}_t}
++
+\sum_t \mathbf{1}{\text{arrival}_t>\text{tw_end}_t}.
+]
+
+Or, in the two-multiplier version:
+
+[
+\max_{\theta}\min_{\lambda_1,\lambda_2\ge 0}
+\mathbb{E}*{\tau\sim\pi*\theta}
+\Big[
+-D(\tau)-\lambda_1(V_1(\tau)-\varepsilon_1)-\lambda_2(V_2(\tau)-\varepsilon_2)
+\Big].
+]
+
+That is, in my view, the most natural primal–dual formulation compatible with this repo.
+
+**My practical suggestion:** start with the scalar version because it is almost a one-line conceptual change, then move to the two-(\lambda) version once the training loop is stable.
+
+If you want, I can next turn this into:
+
+* the exact notation for a paper section, or
+* the concrete code changes needed in `Trainer.py` to implement the (\lambda) update.
+
+[1]: https://github.com/hamidnakhaei/PDPIP/blob/main/POMO%2BPIP/envs/TSPTWEnv.py "PDPIP/POMO+PIP/envs/TSPTWEnv.py at main · hamidnakhaei/PDPIP · GitHub"
+[2]: https://github.com/hamidnakhaei/PDPIP/blob/main/POMO%2BPIP/Trainer.py "PDPIP/POMO+PIP/Trainer.py at main · hamidnakhaei/PDPIP · GitHub"
+
+#Work flow:
+
+generate datasets for training and validation -> train for each hardness -> test for each hardness.
+To replicate the results, you can run only test, because the datasets and trained models are saved.
+
+
+#Train:
+
+python train.py \
+  --problem TSPTW \
+  --problem_size 10 \
+  --train_episodes 1000 \
+  --val_episodes 100 \
+  --train_batch_size 64 \
+  --validation_batch_size 10 \
+  --epochs 1000 \
+  --no_cuda \
+  --hardness {easy, medium, or hard} \
+  --penalty_mode primal_dual\
+
+
+#Generate:
+
+Use this for both validation and test datasets.
+generate_data.py --problem TSPTW \   
+  --problem_size 10 \
+  --pomo_size 1 \
+  --hardness {hard, medium, or easy}\
+  --num_samples 10000
+
+
+#Test:
+
+HARD:
+python test.py \
+  --problem TSPTW \
+  --hardness hard \
+  --problem_size 10 \
+  --checkpoint "/Users/hamidnakhaei/Documents/Education/PhD/Projects/TSP/PIP-constraint/POMO+PIP/results/20260306_120926_TSPTW10_hard_LM/epoch-1000.pt" \
+  --test_set_path "/Users/hamidnakhaei/Documents/Education/PhD/Projects/TSP/PIP-constraint/data/TSPTW/test_tsptw10_hard.pkl" \
+  --test_episodes 10000 \
+  --test_batch_size 64 \
+  --no_cuda
+

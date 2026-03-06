@@ -76,22 +76,27 @@ def occumpy_mem(args):
     """
         Occupy GPU memory in advance.
     """
+    if not torch.cuda.is_available():
+        return  # nothing to do on CPU/MPS
     torch.cuda.set_device(args.gpu_id)
     total, used = check_mem(args.gpu_id)
     total, used = int(total), int(used)
     block_mem = int((total-used) * args.occ_gpu)
-    x = torch.cuda.FloatTensor(256, 1024, block_mem)
+    # Allocate a tensor on GPU to reserve memory
+    x = torch.empty((256, 1024, max(block_mem, 1)), device="cuda", dtype=torch.float32)
     del x
+    torch.cuda.empty_cache()
 
 
 def seed_everything(seed=2023):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.benchmark = False
-    torch.backends.cudnn.deterministic = True
-    torch.cuda.manual_seed_all(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        torch.cuda.manual_seed_all(seed)
 
 def get_env(problem):
     from envs import TSPDLEnv, TSPTWEnv

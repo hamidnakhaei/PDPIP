@@ -18,6 +18,16 @@ class Trainer:
         self.problem = self.args.problem
         self.penalty_factor = args.penalty_factor
 
+        # ---- penalty / primal-dual settings ----
+        self.penalty_mode = self.trainer_params.get("penalty_mode", "fixed")
+        # dual vars (two lambdas) for primal-dual mode
+        self.lambda_timeout = float(self.trainer_params.get("lambda_timeout_init", 1.0))
+        self.lambda_nodes = float(self.trainer_params.get("lambda_nodes_init", 1.0))
+        self.dual_lr = float(self.trainer_params.get("dual_lr", 1e-2))
+        self.eps_timeout = float(self.trainer_params.get("eps_timeout", 0.0))
+        self.eps_nodes = float(self.trainer_params.get("eps_nodes", 0.0))
+        self.lambda_max = float(self.trainer_params.get("lambda_max", 1e6))
+
         self.device = args.device
         self.log_path = args.log_path
         self.result_log = {"val_score": [], "val_gap": [], "val_infsb_rate": []}
@@ -134,8 +144,17 @@ class Trainer:
                     self.model_params["generate_PI_mask"] = True
 
             # Update penalty factor if you want to train it in a curriculum learning way
-            if self.trainer_params["penalty_increase"]:
+            # (only applies in fixed mode; primal-dual updates lambdas elsewhere)
+            if self.penalty_mode == "fixed" and self.trainer_params["penalty_increase"]:
                 self.penalty_factor = 0.5 + epoch / self.trainer_params["epochs"] * 1.5
+            # ---- TensorBoard: log penalty / dual variables ----
+            if self.tb_logger:
+                if self.penalty_mode == "fixed":
+                    self.tb_logger.log_value("penalty/penalty_factor", float(self.penalty_factor), epoch)
+                else:
+                    self.tb_logger.log_value("penalty/lambda_timeout", float(self.lambda_timeout), epoch)
+                    self.tb_logger.log_value("penalty/lambda_nodes", float(self.lambda_nodes), epoch)
+                    self.tb_logger.log_value("penalty/dual_lr", float(self.dual_lr), epoch)
 
             # Train
             train_score, train_loss, infeasible = self._train_one_epoch(epoch)
@@ -642,20 +661,47 @@ class Trainer:
                 "feasible_dist_mean": feasible_dist_mean,
                 "feasible_dist_max_pomo_mean": feasible_dist_max_pomo_mean
             }
+        # --- combine rewards (fixed vs primal-dual) ---
         if isinstance(reward, list):
-            reward = dist +  self.penalty_factor * (total_timeout_reward +  timeout_nodes_reward)  # (batch, pomo)
-        if not self.trainer_params["timeout_reward"] and self.trainer_params["fsb_reward_only"]: # activate when not using LM
-            feasible_reward_number = (infeasible==False).sum(-1)
-            feasible_reward_mean = (torch.where(infeasible, torch.zeros_like(dist_reward), dist_reward).sum(-1) / feasible_reward_number)[:,None]
+            if self.penalty_mode == "fixed":
+                reward = dist + self.penalty_factor * (total_timeout_reward + timeout_nodes_reward)  # (batch, pomo)
+            elif self.penalty_mode == "primal_dual":
+                # two-lambda Lagrangian reward:
+                # maximize: dist_reward + lambda1*total_timeout_reward + lambda2*timeout_nodes_reward
+                reward = dist + (self.lambda_timeout * total_timeout_reward) + (self.lambda_nodes * timeout_nodes_reward)
+
+                # --- dual ascent (projected subgradient) ---
+                # env gives negative rewards for violations: total_timeout_reward = -total_timeout, timeout_nodes_reward = -(#late)
+                # so violations are (-reward_component)
+                with torch.no_grad():
+                    v_timeout = (-total_timeout_reward).float().mean().item()
+                    v_nodes = (-timeout_nodes_reward).float().mean().item()
+
+                    self.lambda_timeout = max(0.0, self.lambda_timeout + self.dual_lr * (v_timeout - self.eps_timeout))
+                    self.lambda_nodes = max(0.0, self.lambda_nodes + self.dual_lr * (v_nodes - self.eps_nodes))
+
+                    # optional cap to prevent blow-up
+                    if self.lambda_max is not None:
+                        self.lambda_timeout = min(self.lambda_timeout, self.lambda_max)
+                        self.lambda_nodes = min(self.lambda_nodes, self.lambda_max)
+            else:
+                raise ValueError(f"Unknown penalty_mode: {self.penalty_mode}")
+
+        # --- advantage / loss (keep original behavior) ---
+        if not self.trainer_params["timeout_reward"] and self.trainer_params["fsb_reward_only"]:  # activate when not using LM
+            feasible_reward_number = (infeasible == False).sum(-1)
+            feasible_reward_mean = (torch.where(infeasible, torch.zeros_like(dist_reward), dist_reward).sum(-1) / feasible_reward_number)[:, None]
+
             feasible_advantage = dist_reward - feasible_reward_mean
-            feasible_advantage = torch.masked_select(feasible_advantage, infeasible==False)
-            log_prob = torch.masked_select(prob_list.log().sum(dim=2), infeasible==False)
+            feasible_advantage = torch.masked_select(feasible_advantage, infeasible == False)
+
+            log_prob = torch.masked_select(prob_list.log().sum(dim=2), infeasible == False)
             advantage = feasible_advantage
         else:
             advantage = reward - reward.float().mean(dim=1, keepdims=True)  # (batch, pomo)
             log_prob = prob_list.log().sum(dim=2)
-        loss = - advantage * log_prob  # Minus Sign: To Increase REWARD
-        loss_mean = loss.mean()
+            loss = - advantage * log_prob  # Minus Sign: To Increase REWARD
+            loss_mean = loss.mean()
         # add SL loss
         if self.model_params['pip_decoder'] and self.is_train_pip_decoder:
             sl_loss_mean = sl_loss_list.mean()

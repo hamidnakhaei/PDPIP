@@ -62,7 +62,10 @@ class TSPTWEnv:
         self.problem_size = env_params['problem_size']
         self.pomo_size = env_params['pomo_size']
         self.loc_scaler = env_params['loc_scaler'] if 'loc_scaler' in env_params.keys() else None
-        self.device = torch.device('cuda', torch.cuda.current_device()) if 'device' not in env_params.keys() else env_params['device']
+        if 'device' in env_params.keys():
+            self.device = env_params['device']
+        else:
+            self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
         # Const @Load_Problem
         ####################################

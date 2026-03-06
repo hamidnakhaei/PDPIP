@@ -35,7 +35,8 @@ def get_lkh_executable(url="http://webhotel4.ruc.dk/~keld/research/LKH-3/LKH-3.0
     if not os.path.isdir(filedir):
         print("{} not found, downloading and compiling".format(filedir))
 
-        check_call(["wget", url], cwd=cwd)
+        #check_call(["wget", url], cwd=cwd)
+        check_call(["curl", "-L", "-o", os.path.basename(urlparse(url).path), url], cwd=cwd)
         assert os.path.isfile(file), "Download failed, {} does not exist".format(file)
         check_call(["tar", "xvfz", file], cwd=cwd)
         assert os.path.isdir(filedir), "Extracting failed, dir {} does not exist".format(filedir)

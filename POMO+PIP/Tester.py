@@ -61,6 +61,7 @@ class Tester:
         for env_class in self.envs:
             start_time = time.time()
             if self.tester_params['test_set_path'] is None or self.tester_params['test_set_path'].endswith(".pkl"):
+                compute_gap = False
                 compute_gap = not (self.tester_params['test_set_path'] is not None and self.tester_params['test_set_opt_sol_path'] is None)
                 scores, aug_scores, sol_infeasible_rate, ins_infeasible_rate = self._test(env_class, compute_gap=compute_gap)
             else:
@@ -109,7 +110,7 @@ class Tester:
             no_aug_feasibles = torch.cat((no_aug_feasibles, no_aug_feasible), dim=0)
             aug_feasibles = torch.cat((aug_feasibles, aug_feasible), dim=0)
 
-            # compute_gap = False
+            compute_gap = False
             if compute_gap:
                 opt_sol_path = self.tester_params['test_set_opt_sol_path'] if self.tester_params['test_set_opt_sol_path'] \
                     else get_opt_sol_path(os.path.join(self.data_dir, env.problem), env.problem, env.problem_size)
